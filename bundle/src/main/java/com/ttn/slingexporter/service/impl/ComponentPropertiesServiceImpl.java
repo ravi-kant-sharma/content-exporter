@@ -31,7 +31,8 @@ import java.util.*;
         "invest-india/components/content/text=text",
         "foundation/components/table=tableData",
         "invest-india/components/content/contactus=contactDetails",
-        "invest-india/components/page/one-column-page=jcr:title;jcr:description;path"
+        "invest-india/components/page/one-column-page=jcr:title;jcr:description;path",
+        "invest-india/components/content/accordionitem=accordionTitle;description"
 }, cardinality = Integer.MAX_VALUE)
 public class ComponentPropertiesServiceImpl implements ComponentPropertiesService {
 

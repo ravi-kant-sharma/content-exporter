@@ -36,6 +36,7 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
     Map<String, List<String>> validPropertiesMap = new HashMap<String, List<String>>();
 
     public static final String BLOG_COMPONENT_NODE = "invest-india/components/content/blogcomponent";
+    public static final String ACCORDIAN_CONTAINER_NODE = "invest-india/components/content/accordioncontainer";
 
     @Activate
     protected void activate(ComponentContext componentContext) throws Exception {
@@ -84,6 +85,8 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                         if (BLOG_COMPONENT_NODE.equals(colChild.getResourceType())) {
                             page.put("blogDetail", addComponents(colChild, new JSONObject()));
                             colChild  = colChild.getChild("blogparsys");
+                        }else if(ACCORDIAN_CONTAINER_NODE.equalsIgnoreCase(colChild.getResourceType())){
+                            System.out.println("Accordian node");
                         }
                         Iterator<Resource> children = colChild.listChildren();
                         while (children.hasNext()) {            // list of resources in col parsys
@@ -115,6 +118,10 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                             con = addComponents(blogCompRes, con);
                         }
                     }
+                    Resource blogListImage = blogResource.getChild("jcr:content/image");
+                    if(blogListImage != null){
+                        con.put("image",blogListImage.getValueMap().get("fileReference"));
+                    }
                     if (con.length() > 0) {
                         if(con.has("path")){
                             con.put("path",blogResource.getPath()+"/jcr:content.compose.json");
@@ -144,6 +151,21 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                     }
                 }
                 content.put("lnd-components", conArray);
+                break;
+            case ComponentPropertiesService.ACCORDIAN_CONATINER_COMPONENT:
+                String accordianTitle = child.getValueMap().get("accordionTitle", String.class);
+                Resource parsysNode = child.getChild("accordion-container");
+                if(parsysNode != null){
+                    Iterator<Resource> accordianItems = parsysNode.listChildren();
+                    while (accordianItems.hasNext()){
+                        JSONObject con = new JSONObject();
+                        Resource accordian = accordianItems.next();
+                        con = addComponents(accordian, con);
+                        conArray.put(con);
+                    }
+                }
+                content.put("accordionTitle", accordianTitle.replaceAll("\\<.*?>", ""));
+                content.put("accordian-list",conArray);
                 break;
             default:
                 content = addComponents(child, new JSONObject());
@@ -179,7 +201,7 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
     }
 
     private void processData(String data, String type, JSONObject node) throws JSONException {
-        if (type.equalsIgnoreCase("text")) {
+        if (type.equalsIgnoreCase("text") || type.equalsIgnoreCase("description")) {
             Document doc = Jsoup.parse(data);
             Elements links = doc.getElementsByTag("a");
             Elements imgs = doc.getElementsByTag("img");
@@ -192,7 +214,7 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
             }*/
             data = data.replaceAll("\\<img.*?>", "--img--");
             data = data.replaceAll("\\<.*?>", "");
-            node.put(type, data);
+
             JSONArray linkArr = new JSONArray();
             JSONArray imgArr = new JSONArray();
             Map<String,Integer> textIndex = new HashMap<>();
@@ -219,15 +241,19 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                 String src = img.attr("src");
                 String text = "--img--";
                 imgObj.put("src", src);
-                if(textIndex.containsKey(text)){
+                index = data.indexOf(text);
+              /*  if(textIndex.containsKey(text)){
                     index = data.indexOf(text,textIndex.get(text) + text.length());
                 }else{
                     index = data.indexOf(text);
-                }
-                textIndex.put(text,index);
+                }*/
+              //  textIndex.put(text,index);
                 imgObj.put("index", index);
                 imgArr.put(imgObj);
+                //removing --img--
+                data = data.replaceFirst("--img--","");
             }
+            node.put(type, data);
             if (linkArr.length() > 0) {
                 node.put("a", linkArr);
             }
