@@ -37,6 +37,7 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
 
     public static final String BLOG_COMPONENT_NODE = "invest-india/components/content/blogcomponent";
     public static final String ACCORDIAN_CONTAINER_NODE = "invest-india/components/content/accordioncontainer";
+    public static final String ROW_CONTAINER_NODE = "invest-india/components/content/row-container";
 
     @Activate
     protected void activate(ComponentContext componentContext) throws Exception {
@@ -87,6 +88,8 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                             colChild  = colChild.getChild("blogparsys");
                         }else if(ACCORDIAN_CONTAINER_NODE.equalsIgnoreCase(colChild.getResourceType())){
                             System.out.println("Accordian node");
+                        }else if(ROW_CONTAINER_NODE.equalsIgnoreCase(colChild.getResourceType())){
+                            System.out.println("Row Container node");
                         }
                         Iterator<Resource> children = colChild.listChildren();
                         while (children.hasNext()) {            // list of resources in col parsys
@@ -167,6 +170,25 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                 content.put("accordionTitle", accordianTitle.replaceAll("\\<.*?>", ""));
                 content.put("accordian-list",conArray);
                 break;
+            case ComponentPropertiesService.ROW_CONATINER_COMPONENT:
+                Resource rowParsysNode = child.getChild("row-content");
+                if(rowParsysNode != null){
+                    Iterator<Resource> rowContainerItems = rowParsysNode.listChildren();
+                    while (rowContainerItems.hasNext()){
+                        JSONObject con = new JSONObject();
+                        Resource row = rowContainerItems.next();
+                        con = addComponents(row, con);
+                        if(row.isResourceType("invest-india/components/content/textimage")) {
+                            Resource imageResource = row.getChild("image");
+                            if(imageResource != null) {
+                                con.put("image", imageResource.getValueMap().get("fileReference", String.class));
+                            }
+                        }
+                        conArray.put(con);
+                    }
+                }
+                content.put("row-container",conArray);
+                break;
             default:
                 content = addComponents(child, new JSONObject());
         }
@@ -194,6 +216,8 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                 node.put("type", "blogComponent");
             } else if(propertiesMap.containsKey("asset")) {
                 node.put("type", "video");
+            } else if(propertiesMap.containsKey("linkURL")) {
+                node.put("type", "text-image");
             }
             //content.put(r.getName(), node);
         }

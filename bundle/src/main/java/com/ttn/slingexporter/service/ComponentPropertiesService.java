@@ -10,6 +10,8 @@ public interface ComponentPropertiesService {
 
     public static final String ACCORDIAN_CONATINER_COMPONENT = "invest-india/components/content/accordioncontainer";
 
+    public static final String ROW_CONATINER_COMPONENT = "invest-india/components/content/row-container";
+
     List<String> getPropertiesForComponent(String component);
 
     boolean containsComponent(String component);
