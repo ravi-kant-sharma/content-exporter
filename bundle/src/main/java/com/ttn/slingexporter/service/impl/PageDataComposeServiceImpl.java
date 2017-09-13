@@ -179,7 +179,7 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                         JSONObject con = new JSONObject();
                         Resource row = rowContainerItems.next();
                         con = addComponents(row, con);
-                        if(row.isResourceType("invest-india/components/content/textimage")) {
+                        if(row.isResourceType("invest-india/components/content/textimage") || row.isResourceType("invest-india/components/content/resource-component")) {
                             Resource imageResource = row.getChild("image");
                             if(imageResource != null) {
                                 con.put("image", imageResource.getValueMap().get("fileReference", String.class));
