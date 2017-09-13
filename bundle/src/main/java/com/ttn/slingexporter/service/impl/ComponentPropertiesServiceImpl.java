@@ -32,6 +32,7 @@ import java.util.*;
         "foundation/components/table=tableData",
         "invest-india/components/content/contactus=contactDetails",
         "invest-india/components/page/one-column-page=jcr:title;jcr:description;path",
+        "invest-india/components/page/two-column-page=jcr:title;jcr:description;path",
         "invest-india/components/content/accordionitem=accordionTitle;description",
         "invest-india/components/content/textimage=linkURL;alt;text",
         "invest-india/components/content/criteria=criteriaImage;fileReference;iconDescription",
