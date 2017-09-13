@@ -22,6 +22,7 @@ import java.util.*;
 @Component(immediate = true)
 @Service(PageDataComposeService.class)
 @Property(name = "template.path", label = "Templates paths", description = "The template path for translation", value = {
+        "invest-india/components/page/basepage=main",
         "invest-india/components/page/one-column-page=col-1",
         "invest-india/components/page/two-column-page=col-1;col-2",
         "invest-india/components/page/blogpage=blogcomponent",
@@ -183,11 +184,48 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                             if(imageResource != null) {
                                 con.put("image", imageResource.getValueMap().get("fileReference", String.class));
                             }
+                        } else if (row.isResourceType("invest-india/components/content/contentpodwrap")) {
+                            Resource contentPodResource = row.getChild("row-content");
+                            if(contentPodResource != null) {
+                                Iterator<Resource> contentPodChildren = contentPodResource.listChildren();
+                                JSONArray childContentPodArray = new JSONArray();
+                                while(contentPodChildren.hasNext()) {
+                                    JSONObject childContentPodObject = new JSONObject();
+                                    Resource childContentPod = contentPodChildren.next();
+                                    childContentPodObject = addComponents(childContentPod, childContentPodObject);
+                                    if(childContentPod.isResourceType("invest-india/components/content/textimage")) {
+                                        Resource imageResource = childContentPod.getChild("image");
+                                        if(imageResource != null) {
+                                            childContentPodObject.put("image", imageResource.getValueMap().get("fileReference", String.class));
+                                        }
+                                    }
+                                    childContentPodArray.put(childContentPodObject);
+                                }
+                                con.put("content-pod", childContentPodArray);
+                            }
+                        } else if (row.isResourceType("invest-india/components/content/form-fields/columncontrol")) {
+                            Iterator<Resource> colRes = row.listChildren();
+                            JSONArray matArray = new JSONArray();
+                            while(colRes.hasNext()) {
+                                Iterator<Resource> matRes = colRes.next().listChildren();
+
+                                while (matRes.hasNext()) {
+                                    JSONObject matObj = new JSONObject();
+                                    matObj = addComponents(matRes.next(), matObj);
+                                    matArray.put(matObj);
+                                }
+
+                            }
+                            con.put("matrix", matArray);
                         }
-                        conArray.put(con);
+                        if(con.length() > 0) {
+                            conArray.put(con);
+                        }
                     }
                 }
-                content.put("row-container",conArray);
+                if(conArray.length() > 0) {
+                    content.put("row-container", conArray);
+                }
                 break;
             default:
                 content = addComponents(child, new JSONObject());
@@ -210,6 +248,8 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
             }
             if(propertiesMap.containsKey("text")) {
                 node.put("type", "text");
+            } else if(propertiesMap.containsKey("criteriaImage")) {
+                node.put("type", "criteriaImage");
             } else if(propertiesMap.containsKey("fileReference")) {
                 node.put("type", "image");
             } else if(propertiesMap.containsKey("blogTitle")) {
