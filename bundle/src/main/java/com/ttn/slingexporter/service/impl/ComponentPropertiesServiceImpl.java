@@ -16,7 +16,6 @@ import java.util.*;
         "foundation/components/text=text;textIsRich",
         "foundation/components/textimage=text",
         "foundation/components/image=fileReference;alt;jcr:title;jcr:description;width;height",
-        "invest-india/components/content/image=fileReference;alt;jcr:title;jcr:description;width;height",
         "foundation/components/video=asset;width;height",
         "foundation/components/title=jcr:title;size",
         "foundation/components/search=jcr:title;searchIn",
@@ -24,20 +23,22 @@ import java.util.*;
         "foundation/components/download=jcr:title;fileReference",
         "foundation/components/chart=chartType;chartData",
         "foundation/components/carousel=pages;playSpeed;transTime",
+        "foundation/components/table=tableData",
         "geometrixx/components/title=jcr:title",
         "geometrixx/components/header=jcr:title;text",
-        "invest-india/components/content/bloglist=authorName;blogTitle;blogdescription;publishDate",
-        "invest-india/components/content/blogcomponent=authorName;blogTitle;blogdescription;publishDate;path",
-        "invest-india/components/content/text=text",
-        "foundation/components/table=tableData",
-        "invest-india/components/content/contactus=contactDetails",
         "invest-india/components/page/one-column-page=jcr:title;jcr:description;path",
         "invest-india/components/page/two-column-page=jcr:title;jcr:description;path",
         "invest-india/components/content/accordionitem=accordionTitle;description",
-        "invest-india/components/content/textimage=linkURL;alt;text",
+        "invest-india/components/content/blogcomponent=authorName;blogTitle;blogdescription;publishDate;path",
+        "invest-india/components/content/bloglist=authorName;blogTitle;blogdescription;publishDate",
+        "invest-india/components/content/contactus=contactDetails",
         "invest-india/components/content/criteria=criteriaImage;fileReference;iconDescription",
+        "invest-india/components/content/download=toolsImageFileReference;title;linkUrl;file;assetSize",
+        "invest-india/components/content/image=fileReference;alt;jcr:title;jcr:description;width;height",
         "invest-india/components/content/matrix=title;description;fileReference",
-        "invest-india/components/content/resource-component=resourceTitle;resourceDescription;linkUrl;"
+        "invest-india/components/content/resource-component=resourceTitle;resourceDescription;linkUrl;",
+        "invest-india/components/content/text=text",
+        "invest-india/components/content/textimage=linkURL;alt;text"
         /*"invest-india/components/content/embed=embedcode"*/
 }, cardinality = Integer.MAX_VALUE)
 public class ComponentPropertiesServiceImpl implements ComponentPropertiesService {
