@@ -144,6 +144,10 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                         Resource lndResourceComp = lndResource.getChild("jcr:content");
                         if (lndResourceComp != null) {
                             con = addComponents(lndResourceComp, con);
+                            Resource lndCompImageResource = lndResourceComp.getChild("image");
+                            if(lndCompImageResource != null) {
+                                con.put("image", lndCompImageResource.getValueMap().get("fileReference", String.class));
+                            }
                         }
                     }
                     if (con.length() > 0) {
