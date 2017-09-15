@@ -172,8 +172,10 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                         conArray.put(con);
                     }
                 }
-                content.put("accordionTitle", accordianTitle.replaceAll("\\<.*?>", ""));
-                content.put("accordian-list",conArray);
+                if(accordianTitle != null) {
+                    content.put("accordionTitle", accordianTitle.replaceAll("\\<.*?>", ""));
+                }
+                content.put("accordion-list",conArray);
                 break;
             case ComponentPropertiesService.ROW_CONATINER_COMPONENT:
                 Resource rowParsysNode = child.getChild("row-content");
