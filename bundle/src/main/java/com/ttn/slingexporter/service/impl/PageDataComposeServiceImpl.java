@@ -273,22 +273,23 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
     private void processData(String data, String type, JSONObject node) throws JSONException {
         if (type.equalsIgnoreCase("text") || type.equalsIgnoreCase("description")) {
             Document doc = Jsoup.parse(data);
-            Elements links = doc.getElementsByTag("a");
-            Elements imgs = doc.getElementsByTag("img");
-           /* int[] imgIndexArr = null;
-            if(imgs.size() > 0) {
-                imgIndexArr = new int[imgs.size()];
-                for (Element img : imgs){
-                    imgs
-                }
-            }*/
             data = data.replaceAll("\\<img.*?>", "--img--");
             data = data.replaceAll("\\<.*?>", "");
+
+            Elements tables = doc.getElementsByTag("table");
+            for (Element table: tables) {
+                node.put("table", tableProcesser(table, data));
+                table.remove();
+            }
+
+            Elements links = doc.getElementsByTag("a");
+            Elements imgs = doc.getElementsByTag("img");
 
             JSONArray linkArr = new JSONArray();
             JSONArray imgArr = new JSONArray();
             Map<String,Integer> textIndex = new HashMap<>();
             int index = 0;
+
             for (Element link : links) {
                 JSONObject linkObj = new JSONObject();
                 String href = link.attr("href");
@@ -319,11 +320,15 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                 }*/
               //  textIndex.put(text,index);
                 imgObj.put("index", index);
+                imgObj.put("width", img.attr("width"));
+                imgObj.put("height", img.attr("height"));
                 imgArr.put(imgObj);
                 //removing --img--
                 data = data.replaceFirst("--img--","");
             }
             node.put(type, data);
+
+
             if (linkArr.length() > 0) {
                 node.put("a", linkArr);
             }
@@ -331,14 +336,29 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                 node.put("img", imgArr);
             }
 
-        } else if (type.equalsIgnoreCase("tableData")) {
+
+        } else if(type.equalsIgnoreCase("tableData")){
             Document doc = Jsoup.parse(data);
-            Elements rows = doc.getElementsByTag("tr");
+            for(Element table: doc.getElementsByTag("table")) {
+                node.put(type, tableProcesser(table, data ));
+            }
+        } else if(type.equalsIgnoreCase("publishDate")){
+            node.put(type, new Date());
+        } else {
+            data = data.replaceAll("\\<.*?>", "");
+            node.put(type, data);
+        }
+        node.put("type", type);
+    }
+
+    private JSONArray tableProcesser(Element table, String data) throws JSONException {
+            data = data.replaceAll("\\<img.*?>", "--img--");
+            Elements rows = table.select("tr");
             JSONArray rowArray = new JSONArray();
             Map<String,Integer> textIndex = new HashMap<>();
             int index = 0;
             for (Element row : rows) {
-                Elements cols = row.getElementsByTag("td");
+                Elements cols = row.select("td");
                 JSONArray colArray = new JSONArray();
                 for (Element col : cols) {
                     JSONObject column = new JSONObject();
@@ -359,22 +379,35 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                         textIndex.put(text,index);
                         linkArr.put(linkObj);
                     }
-                    column.put("text", col.text());
+
                     if (linkArr.length() > 0) {
                         column.put("a", linkArr);
+                    }
+
+                    Elements imgs = col.getElementsByTag("img");
+                    JSONArray imgArr = new JSONArray();
+                    for (Element img : imgs) {
+                        JSONObject imgObj = new JSONObject();
+                        imgObj.put("src", img.attr("src"));
+                        imgObj.put("alt", img.attr("alt"));
+                        imgObj.put("height", img.attr("height"));
+                        imgObj.put("width", img.attr("width"));
+                        index = data.indexOf("--img--");
+                        imgObj.put("index", index);
+                        imgArr.put(imgObj);
+                        data = data.replaceFirst("--img--","");
+                    }
+                    if (col.text().length() > 0) {
+                        column.put("text", col.text());
+                    }
+                    if (imgArr.length() > 0) {
+                        column.put("img", imgArr);
                     }
 
                     colArray.put(column);
                 }
                 rowArray.put(colArray);
             }
-            node.put(type, rowArray);
-        } else if(type.equalsIgnoreCase("publishDate")){
-            node.put(type, new Date());
-        } else{
-            data = data.replaceAll("\\<.*?>", "");
-            node.put(type, data);
-        }
-        node.put("type", type);
+            return rowArray;
     }
 }
