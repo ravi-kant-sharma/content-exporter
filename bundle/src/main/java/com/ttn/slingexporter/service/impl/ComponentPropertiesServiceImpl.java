@@ -38,7 +38,12 @@ import java.util.*;
         "invest-india/components/content/matrix=title;description;fileReference",
         "invest-india/components/content/resource-component=resourceTitle;resourceDescription;linkUrl;",
         "invest-india/components/content/text=text",
-        "invest-india/components/content/textimage=linkURL;alt;text"
+        "invest-india/components/content/textimage=linkURL;alt;text",
+        "invest-india/components/content/bannerimage=fileReference",
+        "invest-india/components/content/quick-facts=factDescription;factTitle;factUrl;factsList;title",
+        "invest-india/components/content/policy-description=heading",
+        "invest-india/components/content/tab-content=tabHeading"
+
         /*"invest-india/components/content/embed=embedcode"*/
 }, cardinality = Integer.MAX_VALUE)
 public class ComponentPropertiesServiceImpl implements ComponentPropertiesService {
