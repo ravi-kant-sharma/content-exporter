@@ -29,6 +29,7 @@ import java.util.*;
         "invest-india/components/page/one-column-page=jcr:title;jcr:description;path",
         "invest-india/components/page/two-column-page=jcr:title;jcr:description;path",
         "invest-india/components/content/accordionitem=accordionTitle;description",
+        "invest-india/components/content/bannerimage=fileReference",
         "invest-india/components/content/blogcomponent=authorName;blogTitle;blogdescription;publishDate;path",
         "invest-india/components/content/bloglist=authorName;blogTitle;blogdescription;publishDate",
         "invest-india/components/content/contactus=contactDetails",
@@ -36,9 +37,13 @@ import java.util.*;
         "invest-india/components/content/download=toolsImageFileReference;title;linkUrl;file;assetSize",
         "invest-india/components/content/image=fileReference;alt;jcr:title;jcr:description;width;height",
         "invest-india/components/content/matrix=title;description;fileReference",
+        "invest-india/components/content/policy-description=heading",
+        "invest-india/components/content/quick-facts=factDescription;factTitle;factUrl;factsList;title",
         "invest-india/components/content/resource-component=resourceTitle;resourceDescription;linkUrl;",
+        "invest-india/components/content/tab-content=tabHeading",
         "invest-india/components/content/text=text",
-        "invest-india/components/content/textimage=linkURL;alt;text"
+        "invest-india/components/content/textimage=linkURL;alt;text",
+
         /*"invest-india/components/content/embed=embedcode"*/
 }, cardinality = Integer.MAX_VALUE)
 public class ComponentPropertiesServiceImpl implements ComponentPropertiesService {

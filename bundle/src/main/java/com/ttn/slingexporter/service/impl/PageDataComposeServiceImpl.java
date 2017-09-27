@@ -24,9 +24,10 @@ import java.util.*;
 @Property(name = "template.path", label = "Templates paths", description = "The template path for translation", value = {
         "invest-india/components/page/basepage=main",
         "invest-india/components/page/one-column-page=col-1",
-        "invest-india/components/page/two-column-page=col-1;col-2",
+        "invest-india/components/page/two-column-page=col-1;col-2;col-2-inherited",
         "invest-india/components/page/blogpage=blogcomponent",
-        "foundation/components/table=tableData"
+        "foundation/components/table=tableData",
+        "invest-india/components/content/policy-description=text"
 }, cardinality = Integer.MAX_VALUE)
 
 public class PageDataComposeServiceImpl implements PageDataComposeService {
@@ -37,8 +38,10 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
     Map<String, List<String>> validPropertiesMap = new HashMap<String, List<String>>();
 
     public static final String BLOG_COMPONENT_NODE = "invest-india/components/content/blogcomponent";
+    public static final String POLICY_DESCRIPTION_NODE = "invest-india/components/content/policy-description";
     public static final String ACCORDIAN_CONTAINER_NODE = "invest-india/components/content/accordioncontainer";
     public static final String ROW_CONTAINER_NODE = "invest-india/components/content/row-container";
+    public static final String TAB_CONTAINER_NODE = "invest-india/components/content/tab-container";
 
     @Activate
     protected void activate(ComponentContext componentContext) throws Exception {
@@ -94,7 +97,7 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                         }
                         Iterator<Resource> children = colChild.listChildren();
                         while (children.hasNext()) {            // list of resources in col parsys
-                            JSONObject jsonObject = composeComponentData(children.next(), resource, new JSONObject());
+                            JSONObject jsonObject = composeComponentData(null,null,children.next(), resource, new JSONArray(),false);
                             if (jsonObject.length() > 0) {
                                 contentList.put(jsonObject);
                             }
@@ -107,9 +110,16 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
         return page;
     }
 
-    private JSONObject composeComponentData(Resource child, Resource resource, JSONObject jsonObject) throws JSONException {
-        JSONObject content = new JSONObject();
-        JSONArray conArray = new JSONArray();
+    private JSONObject composeComponentData(JSONObject content,JSONArray conArray,Resource child, Resource resource, JSONArray tabArray,boolean isTab) throws JSONException {
+        if(content == null) {
+            content = new JSONObject();
+        }
+        if(conArray == null) {
+            conArray = new JSONArray();
+        }
+        if(isTab && tabArray == null){
+            tabArray = new JSONArray();
+        }
         switch (child.getValueMap().get("sling:resourceType", String.class)) {
             case ComponentPropertiesService.BLOG_LIST_COMPONENT:
                 Iterator<Resource> blogResourceItr = resource.getParent().listChildren();
@@ -175,7 +185,15 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                 if(accordianTitle != null) {
                     content.put("accordionTitle", accordianTitle.replaceAll("\\<.*?>", ""));
                 }
-                content.put("accordion-list",conArray);
+                if(isTab && tabArray != null){
+                    JSONObject tab = new JSONObject();
+                    tab.put("accordion-list",conArray);
+                    tabArray.put(tab);
+                    content.put("tab-array",tabArray);
+                }else{
+                    content.put("accordion-list",conArray);
+                }
+
                 break;
             case ComponentPropertiesService.ROW_CONATINER_COMPONENT:
                 Resource rowParsysNode = child.getChild("row-content");
@@ -233,6 +251,40 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                     content.put("row-container", conArray);
                 }
                 break;
+            case POLICY_DESCRIPTION_NODE :
+                Resource text = child.getChild("text");
+                content = addComponents(text, new JSONObject());
+                if(child.getValueMap().get("heading") != null) {
+                    content.put("heading",child.getValueMap().get("heading"));
+                }
+                break;
+            case TAB_CONTAINER_NODE:
+                Iterator<Resource> r = child.listChildren();
+                while(r.hasNext()) {
+                    Resource tab = r.next();
+                    Iterator<Resource> tabs = tab.listChildren();
+                    while(tabs.hasNext()){
+                        Resource t = tabs.next();
+                        composeComponentData(content,conArray,t, tab,tabArray,false);
+                    }
+                }
+                break;
+            case "invest-india/components/content/tab-content" :
+                Iterator<Resource> r1 = child.listChildren();
+                while(r1.hasNext()) {
+                    Resource tab = r1.next();
+                    Iterator<Resource> c = tab.getChild("col-0").listChildren();
+                    while(c.hasNext()) {
+                        Resource rr = c.next();
+                        composeComponentData(content,null,rr, tab, tabArray,true);
+                    }
+                    JSONArray arr = (JSONArray)content.get("tab-array");
+                    if(arr != null && arr.length() >0) {
+                        int l = arr.length();
+                        ((JSONObject) arr.get(l - 1)).put("tabHeading", child.getValueMap().get("tabHeading"));
+                    }
+                }
+                break;
             default:
                 content = addComponents(child, new JSONObject());
         }
@@ -246,8 +298,20 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
             ValueMap propertiesMap = r.adaptTo(ValueMap.class);
             for (String p : properties) {
                 if (propertiesMap.containsKey(p)) {
-                    String val = propertiesMap.get(p).toString();
-                    processData(val, p, node);
+                    if(propertiesMap.get(p) instanceof String[]) {
+                        String[] val = ((String[]) propertiesMap.get(p)).clone();
+                        JSONArray array = new JSONArray();
+                        for(int i =0;i<val.length;i++){
+                            JSONObject n = new JSONObject();
+                            processData(val[i], p, n);
+                            array.put(n);
+                        }
+                        node.put(p+"Array",array);
+                    }else{
+                        String val = propertiesMap.get(p).toString();
+                        processData(val, p, node);
+                    }
+
                 } else if (p.equals("path")) {
                     processData(r.getPath() + "/jcr:content.compose.json", p, node);
                 }
@@ -277,11 +341,14 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
             data = data.replaceAll("\\<.*?>", "");
 
             Elements tables = doc.getElementsByTag("table");
+            JSONArray tableArray = new JSONArray();
             for (Element table: tables) {
-                node.put("table", tableProcesser(table, data));
+                 tableArray.put(tableProcesser(table, data));
                 table.remove();
             }
-
+            if(tableArray.length() > 0) {
+                node.put("table", tableArray);
+            }
             Elements links = doc.getElementsByTag("a");
             Elements imgs = doc.getElementsByTag("img");
 
