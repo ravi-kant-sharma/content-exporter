@@ -341,11 +341,14 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
             data = data.replaceAll("\\<.*?>", "");
 
             Elements tables = doc.getElementsByTag("table");
+            JSONArray tableArray = new JSONArray();
             for (Element table: tables) {
-                node.put("table", tableProcesser(table, data));
+                 tableArray.put(tableProcesser(table, data));
                 table.remove();
             }
-
+            if(tableArray.length() > 0) {
+                node.put("table", tableArray);
+            }
             Elements links = doc.getElementsByTag("a");
             Elements imgs = doc.getElementsByTag("img");
 
