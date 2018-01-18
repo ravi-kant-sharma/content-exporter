@@ -7,5 +7,5 @@ import org.apache.sling.commons.json.JSONObject;
 
 public interface PageDataComposeService {
 
-    JSONObject composePageData(ResourceResolver resourceResolver, String resourcePath) throws JSONException;
+    JSONObject composePageData(ResourceResolver resourceResolver, String resourcePath, String requestUrl) throws JSONException;
 }

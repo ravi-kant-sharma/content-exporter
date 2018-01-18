@@ -37,7 +37,7 @@ public class PageDataComposerServlet extends SlingAllMethodsServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("utf-8");
         try {
-            JSONObject jsonObject = pageDataComposeService.composePageData(request.getResourceResolver(),request.getResource().getPath());
+            JSONObject jsonObject = pageDataComposeService.composePageData(request.getResourceResolver(),request.getResource().getPath(),request.getRequestURL().toString());
             jsonObject.write(response.getWriter());
         } catch (JSONException e) {
             e.printStackTrace();

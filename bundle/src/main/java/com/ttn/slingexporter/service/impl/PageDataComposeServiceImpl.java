@@ -71,7 +71,10 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
 
     JSONObject page;
 
-    public JSONObject composePageData(ResourceResolver resourceResolver, String resourcePath) throws JSONException {
+    private String domainUrl = "";
+
+    public JSONObject composePageData(ResourceResolver resourceResolver, String resourcePath, String requestUrl) throws JSONException {
+        domainUrl = requestUrl.substring(0,requestUrl.indexOf("/content"));
         page = new JSONObject();
         Resource resource = resourceResolver.resolve(resourcePath);
         JSONArray contentList = new JSONArray();
@@ -156,7 +159,11 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                             con = addComponents(lndResourceComp, con);
                             Resource lndCompImageResource = lndResourceComp.getChild("image");
                             if(lndCompImageResource != null) {
-                                con.put("image", lndCompImageResource.getValueMap().get("fileReference", String.class));
+                                if(lndCompImageResource.getValueMap().containsKey("fileReference")) {
+                                    con.put("image", lndCompImageResource.getValueMap().get("fileReference", String.class));
+                                }else if(lndCompImageResource.getChild("file/jcr:content") != null){
+                                    con.put("image",lndCompImageResource.getChild("file/jcr:content").getPath());
+                                }
                             }
                         }
                     }
@@ -338,6 +345,7 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
         if (type.equalsIgnoreCase("text") || type.equalsIgnoreCase("description")) {
             Document doc = Jsoup.parse(data);
             data = data.replaceAll("\\<img.*?>", "--img--");
+            data = data.replaceAll("\\<iframe.*?>", "--iframe--");
             data = data.replaceAll("\\<.*?>", "");
 
             Elements tables = doc.getElementsByTag("table");
@@ -351,9 +359,11 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
             }
             Elements links = doc.getElementsByTag("a");
             Elements imgs = doc.getElementsByTag("img");
+            Elements iframes = doc.getElementsByTag("iframe");
 
             JSONArray linkArr = new JSONArray();
             JSONArray imgArr = new JSONArray();
+            JSONArray iframeArr = new JSONArray();
             Map<String,Integer> textIndex = new HashMap<>();
             int index = 0;
 
@@ -363,6 +373,9 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                 String text = link.text();
                 linkObj.put("text", text);
                 linkObj.put("href", href);
+                if(href.contains("/content/dam/invest-india")){
+                    href = domainUrl + href;
+                }
                 if(textIndex.containsKey(text)){
                     index = data.indexOf(text,textIndex.get(text) + text.length());
                 }else{
@@ -393,6 +406,26 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                 //removing --img--
                 data = data.replaceFirst("--img--","");
             }
+            textIndex.clear();
+            for (Element iframe : iframes) {
+                JSONObject iframeObj = new JSONObject();
+                String src = iframe.attr("src");
+                String text = "--iframe--";
+                iframeObj.put("src", src);
+                index = data.indexOf(text);
+              /*  if(textIndex.containsKey(text)){
+                    index = data.indexOf(text,textIndex.get(text) + text.length());
+                }else{
+                    index = data.indexOf(text);
+                }*/
+                //  textIndex.put(text,index);
+                iframeObj.put("index", index);
+                iframeObj.put("width", iframe.attr("width"));
+                iframeObj.put("height", iframe.attr("height"));
+                iframeArr.put(iframeObj);
+                //removing --iframe--
+                data = data.replaceFirst("--iframe--","");
+            }
             node.put(type, data);
 
 
@@ -401,6 +434,9 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
             }
             if (imgArr.length() > 0) {
                 node.put("img", imgArr);
+            }
+            if (iframeArr.length() > 0) {
+                node.put("iframe", iframeArr);
             }
 
 
@@ -426,6 +462,7 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
             int index = 0;
             for (Element row : rows) {
                 Elements cols = row.select("td");
+                cols.addAll(row.select("th"));
                 JSONArray colArray = new JSONArray();
                 for (Element col : cols) {
                     JSONObject column = new JSONObject();
@@ -434,6 +471,9 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                     for (Element link : links) {
                         JSONObject linkObj = new JSONObject();
                         String href = link.attr("href");
+                        if(href.contains("/content/dam/invest-india")){
+                            href = domainUrl + href;
+                        }
                         String text = link.text();
                         linkObj.put("text", text);
                         linkObj.put("href", href);
