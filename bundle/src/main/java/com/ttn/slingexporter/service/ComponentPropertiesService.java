@@ -12,6 +12,8 @@ public interface ComponentPropertiesService {
 
     public static final String ROW_CONATINER_COMPONENT = "invest-india/components/content/row-container";
 
+    public static final String TARGETED_COMPONENT = "cq/personalization/components/target";
+
     List<String> getPropertiesForComponent(String component);
 
     boolean containsComponent(String component);

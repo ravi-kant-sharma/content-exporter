@@ -42,6 +42,7 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
     public static final String ACCORDIAN_CONTAINER_NODE = "invest-india/components/content/accordioncontainer";
     public static final String ROW_CONTAINER_NODE = "invest-india/components/content/row-container";
     public static final String TAB_CONTAINER_NODE = "invest-india/components/content/tab-container";
+    public static final String TARGETED_NODE = "cq/personalization/components/target";
 
     @Activate
     protected void activate(ComponentContext componentContext) throws Exception {
@@ -90,6 +91,10 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                 for (String parsysNode : parsysNodes) {     // for col nodes
                     Resource colChild = resource.getChild(parsysNode);
                     if (colChild != null) {
+                        if (TARGETED_NODE.equalsIgnoreCase(colChild.getResourceType())) {
+                            colChild = handleTarget(colChild);
+                            System.out.println("Targetted Component Found");
+                        }
                         if (BLOG_COMPONENT_NODE.equals(colChild.getResourceType())) {
                             page.put("blogDetail", addComponents(colChild, new JSONObject()));
                             colChild  = colChild.getChild("blogparsys");
@@ -113,8 +118,12 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
         return page;
     }
 
-    private JSONObject composeComponentData(JSONObject content,JSONArray conArray,Resource child, Resource resource, JSONArray tabArray,boolean isTab) throws JSONException {
-        if(content == null) {
+    public Resource handleTarget(Resource content) throws JSONException {
+        return content.getChild("default");
+    }
+
+    private JSONObject composeComponentData(JSONObject content, JSONArray conArray, Resource child, Resource resource, JSONArray tabArray, boolean isTab) throws JSONException {
+        if (content == null) {
             content = new JSONObject();
         }
         if(conArray == null) {
@@ -292,6 +301,12 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                     }
                 }
                 break;
+            case ComponentPropertiesService.TARGETED_COMPONENT:
+                Resource targetChild = child.getChild("default");
+                if (targetChild != null) {
+                    content = composeComponentData(content, conArray, targetChild, child, tabArray, false);
+                }
+                break;
             default:
                 content = addComponents(child, new JSONObject());
         }
@@ -383,7 +398,7 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                 }
                 textIndex.put(text,index);
                 linkObj.put("index", index);
-                
+
                 linkArr.put(linkObj);
             }
             textIndex.clear();
