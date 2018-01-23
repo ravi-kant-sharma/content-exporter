@@ -462,7 +462,15 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
             }
         } else if(type.equalsIgnoreCase("publishDate")){
             node.put(type, new Date());
-        } else {
+        }else if(type.equalsIgnoreCase("linkUrl")){
+            if(!data.startsWith("http") && data.indexOf("content/sih/en") > 0){
+                data = domainUrl + data;
+            }
+            if(data.indexOf("/content/sih/en") > 0 && !data.contains(".")){
+                data = data + ".html";
+            }
+            node.put(type, data);
+        } else{
             data = data.replaceAll("\\<.*?>", "");
             node.put(type, data);
         }
