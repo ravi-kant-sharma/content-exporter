@@ -257,6 +257,10 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
 
                             }
                             con.put("matrix", matArray);
+                        }else if(row.isResourceType(ComponentPropertiesService.TARGETED_COMPONENT)){
+                            if(row.getChild("default") != null) {
+                                con = addComponents(row.getChild("default"), con);
+                            }
                         }
                         if(con.length() > 0) {
                             conArray.put(con);
