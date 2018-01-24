@@ -334,8 +334,13 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                         }
                         node.put(p+"Array",array);
                     }else{
-                        String val = propertiesMap.get(p).toString();
-                        processData(val, p, node);
+                        if(p.equalsIgnoreCase("publishDate")){
+                            String date = propertiesMap.get(p,Date.class).toString();
+                            processData(date, p, node);
+                        }else {
+                            String val = propertiesMap.get(p).toString();
+                            processData(val, p, node);
+                        }
                     }
 
                 } else if (p.equals("path")) {
@@ -464,9 +469,10 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
             for(Element table: doc.getElementsByTag("table")) {
                 node.put(type, tableProcesser(table, data ));
             }
-        } else if(type.equalsIgnoreCase("publishDate")){
-            node.put(type, new Date());
         }
+       /* else if(type.equalsIgnoreCase("publishDate")){
+            node.put(type, new Date());
+        }*/
 
        /* else if(type.equalsIgnoreCase("linkUrl")){
             if(!data.startsWith("http") && data.indexOf("content/sih/en") > 0){
