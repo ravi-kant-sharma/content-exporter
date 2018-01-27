@@ -368,6 +368,8 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
     private void processData(String data, String type, JSONObject node) throws JSONException {
         if (type.equalsIgnoreCase("text") || type.equalsIgnoreCase("description")) {
             Document doc = Jsoup.parse(data);
+            data = data.replaceAll("&?nbsp;","");
+            data = data.replaceAll("&?amp;","");
             data = data.replaceAll("\\<img.*?>", "--img--");
             data = data.replaceAll("\\<iframe.*?>", "--iframe--");
             data = data.replaceAll("\\<.*?>", "");
@@ -492,6 +494,8 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
     }
 
     private JSONArray tableProcesser(Element table, String data) throws JSONException {
+            data = data.replaceAll("&?nbsp;","");
+            data = data.replaceAll("&?amp;","");
             data = data.replaceAll("\\<img.*?>", "--img--");
             Elements rows = table.select("tr");
             JSONArray rowArray = new JSONArray();
