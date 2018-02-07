@@ -219,7 +219,17 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                         JSONObject con = new JSONObject();
                         Resource row = rowContainerItems.next();
                         con = addComponents(row, con);
-                        if(row.isResourceType("invest-india/components/content/textimage") || row.isResourceType("invest-india/components/content/resource-component")) {
+                        if(row.isResourceType("wcm/foundation/components/image")) {
+                            ValueMap imageMap = row.getValueMap();
+                            con.put("linkURL", imageMap.get("linkURL"));
+                            con.put("text", imageMap.get("jcr:title"));
+                            con.put("type", "image");
+                            if (imageMap.containsKey("fileReference")) {
+                                con.put("image", imageMap.get("fileReference", String.class));
+                            } else if (row.getChild("file/jcr:content") != null) {
+                                con.put("image", row.getChild("file/jcr:content").getPath());
+                            }
+                        } else if(row.isResourceType("invest-india/components/content/textimage") || row.isResourceType("invest-india/components/content/resource-component")) {
                             Resource imageResource = row.getChild("image");
                             if(imageResource != null) {
                                 con.put("image", imageResource.getValueMap().get("fileReference", String.class));
@@ -269,6 +279,17 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                 }
                 if(conArray.length() > 0) {
                     content.put("row-container", conArray);
+                }
+                break;
+            case ComponentPropertiesService.SIGHTLY_IMAGE_COMPONENT:
+                ValueMap imageMap = child.getValueMap();
+                content.put("linkURL", imageMap.get("linkURL"));
+                content.put("text", imageMap.get("jcr:title"));
+                content.put("type", "image");
+                if (imageMap.containsKey("fileReference")) {
+                    content.put("image", imageMap.get("fileReference", String.class));
+                } else if (child.getChild("file/jcr:content") != null) {
+                    content.put("image", child.getChild("file/jcr:content").getPath());
                 }
                 break;
             case POLICY_DESCRIPTION_NODE :
