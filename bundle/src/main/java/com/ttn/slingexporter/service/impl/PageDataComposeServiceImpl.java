@@ -17,6 +17,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.osgi.service.component.ComponentContext;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Component(immediate = true)
@@ -43,6 +45,7 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
     public static final String ROW_CONTAINER_NODE = "invest-india/components/content/row-container";
     public static final String TAB_CONTAINER_NODE = "invest-india/components/content/tab-container";
     public static final String TARGETED_NODE = "cq/personalization/components/target";
+    public static final String DATE_FORMAT = "dd MMM yyyy, EEEE";
 
     @Activate
     protected void activate(ComponentContext componentContext) throws Exception {
@@ -356,8 +359,13 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                         node.put(p+"Array",array);
                     }else{
                         if(p.equalsIgnoreCase("publishDate")){
-                            String date = propertiesMap.get(p,Date.class).toString();
-                            processData(date, p, node);
+                            try {
+                                String date = getFormattedDate(propertiesMap.get(p, Date.class), DATE_FORMAT);
+                                processData(date, p, node);
+                            }catch (ParseException e){
+                                System.out.println("Unable to parse data");
+                            }
+
                         }else {
                             String val = propertiesMap.get(p).toString();
                             processData(val, p, node);
@@ -578,5 +586,10 @@ public class PageDataComposeServiceImpl implements PageDataComposeService {
                 rowArray.put(colArray);
             }
             return rowArray;
+    }
+
+    public static String getFormattedDate(Date date, String format) throws ParseException {
+        SimpleDateFormat dateFormatter = new SimpleDateFormat(format);
+        return dateFormatter.format(date);
     }
 }
